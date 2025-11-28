@@ -22,3 +22,11 @@ __pycache__/
 *.so
 analysis_embeddings.png
 last_result.txt
+checkpoints/
+venv/
+*.pth
+__pycache__/
+*.pyc
+*.so
+analysis_embeddings.png
+last_result.txt
