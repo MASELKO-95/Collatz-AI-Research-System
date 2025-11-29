@@ -1,0 +1,49 @@
+name: collatz-ai
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  # Python
+  - python=3.13
+
+  # Core ML/Scientific Computing
+  - pytorch=2.5.1
+  - pytorch-cuda=12.4
+  - numpy=1.26.4
+  - numba=0.60.0
+
+  # Visualization
+  - matplotlib=3.9.2
+  - scikit-learn=1.5.2
+
+  # Utilities
+  - tqdm=4.66.5
+  - requests=2.32.3
+  - pyyaml=6.0.2
+
+  # Development Tools
+  - pytest=8.3.3
+  - pytest-cov=5.0.0
+  - black=24.8.0
+  - flake8=7.1.1
+  - mypy=1.11.2
+  - pre-commit=3.8.0
+
+  # Build Tools
+  - pip=24.2
+  - setuptools=75.1.0
+  - wheel=0.44.0
+
+  # C++ Compiler
+  - gxx_linux-64=13.3.0
+
+  # Optional: Jupyter for notebooks
+  - jupyter=1.1.1
+  - ipykernel=6.29.5
+
+  # Pip packages (if not available via conda)
+  - pip:
+    - huggingface-hub>=0.25.0

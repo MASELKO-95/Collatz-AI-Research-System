@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  collatz-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: collatz-ai:latest
+    container_name: collatz-ai-training
+    
+    # GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Environment variables
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+    
+    # Volumes for persistent data
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./config.yaml:/app/config.yaml
+      - ./logs:/app/logs
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Resource limits
+    mem_limit: 16g
+    cpus: 12
+    
+    # Command override (optional)
+    # command: python -m src.train
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: TensorBoard for monitoring (future feature)
+  # tensorboard:
+  #   image: tensorflow/tensorflow:latest
+  #   container_name: collatz-ai-tensorboard
+  #   ports:
+  #     - "6006:6006"
+  #   volumes:
+  #     - ./logs:/logs
+  #   command: tensorboard --logdir=/logs --host=0.0.0.0

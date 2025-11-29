@@ -1,0 +1,8 @@
+{
+    "rpc_url": "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
+    "contract_address": "0xYOUR_REWARD_DISTRIBUTOR_ADDRESS",
+    "private_key": "0xYOUR_PRIVATE_KEY_HERE",
+    "user_wallet": "0x70b16C2b89C6d306104A77013EA53E26f9943C33",
+    "submit_interval": 1000,
+    "enabled": true
+}

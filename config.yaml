@@ -1,0 +1,55 @@
+# Collatz AI Configuration File
+
+# Model Architecture
+model:
+  d_model: 128          # Model dimension
+  nhead: 4              # Number of attention heads
+  num_layers: 4         # Number of transformer layers
+  max_len: 500          # Maximum sequence length
+
+# Training Parameters
+training:
+  batch_size: 512       # Batch size (adjust based on VRAM)
+  learning_rate: 1.0e-4 # Initial learning rate
+  min_lr: 1.0e-6        # Minimum learning rate for cosine annealing
+  steps: 1000000        # Total training steps
+  gradient_clip: 1.0    # Gradient clipping threshold
+  mixed_precision: true # Use automatic mixed precision (AMP)
+
+# Data Generation
+data:
+  start_range: 1000     # Starting number for data generation
+  end_range: 1000000    # Ending number for data generation
+  num_workers: 20       # Number of data loading workers
+  hard_mode_ratio: 0.5  # Ratio of hard candidates (n > 2^68)
+  use_native: true      # Use C++ engine if available
+
+# Hardware Settings
+hardware:
+  device: "cuda"        # Device: "cuda" or "cpu"
+  num_threads: 22       # Number of CPU threads for loop searcher
+
+# Checkpointing
+checkpoints:
+  save_interval: 10000  # Save checkpoint every N steps
+  checkpoint_dir: "checkpoints"
+  keep_last_n: 5        # Keep only last N checkpoints
+
+# Logging
+logging:
+  log_interval: 100     # Log every N steps
+  discord_webhook: ""   # Discord webhook URL (optional)
+  send_anomalies: true  # Send anomaly alerts to Discord
+
+# Loop Searcher
+loop_searcher:
+  enabled: true         # Enable background loop searching
+  base_start: 295147905179352825856  # 2^68
+  batch_size: 1000000   # Numbers to check per thread
+  search_interval: 1000 # Run search every N training steps
+
+# Analysis
+analysis:
+  analyze_interval: 50000  # Analyze model every N steps
+  analyze_range_start: 1
+  analyze_range_end: 10000
