@@ -79,19 +79,6 @@ def train():
     except Exception as e:
         print(f"Could not start loop searcher: {e}")
     
-    # Data
-    # Hard mode probability handled inside dataset workers now
-    dataset = CollatzIterableDataset(start_n=10, batch_size=BATCH_SIZE, hard_mode_prob=0.5)
-    dataloader = DataLoader(
-        dataset, 
-        batch_size=BATCH_SIZE, 
-        collate_fn=collate_fn,
-        num_workers=NUM_WORKERS,
-        prefetch_factor=PREFETCH_FACTOR,
-        pin_memory=True
-    )
-    data_iter = iter(dataloader)
-    
     # Model
     model = CollatzTransformer(d_model=D_MODEL, nhead=NHEAD, num_layers=NUM_LAYERS).to(DEVICE)
     
@@ -104,7 +91,7 @@ def train():
     
     criterion_stopping = nn.HuberLoss(delta=1.0)
     criterion_next_step = nn.CrossEntropyLoss(ignore_index=2)
-    
+
     # Resume from checkpoint
     start_step = 0
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
@@ -128,6 +115,24 @@ def train():
             
     torch.cuda.empty_cache()
     model.train()
+
+    # Data - Initialize AFTER loading checkpoint to use correct start_n
+    # Calculate start_n based on steps to avoid "stuck" training on restart
+    # Each step consumes BATCH_SIZE numbers (roughly, excluding hard mode)
+    current_start_n = 10 + (start_step * BATCH_SIZE)
+    print(f"Resuming data generation from number: {current_start_n}")
+    
+    # Hard mode probability handled inside dataset workers now
+    dataset = CollatzIterableDataset(start_n=current_start_n, batch_size=BATCH_SIZE, hard_mode_prob=0.5)
+    dataloader = DataLoader(
+        dataset, 
+        batch_size=BATCH_SIZE, 
+        collate_fn=collate_fn,
+        num_workers=NUM_WORKERS,
+        prefetch_factor=PREFETCH_FACTOR,
+        pin_memory=True
+    )
+    data_iter = iter(dataloader)
     
     step = start_step
     start_time = time.time()

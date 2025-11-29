@@ -73,17 +73,16 @@ def visualize_embeddings(model, start, end, device, save_path="embeddings.png"):
     src = torch.tensor(parity_vectors, dtype=torch.long).to(device)
     
     with torch.no_grad():
-        # Model expects [batch, seq_len], but internally transposes to [seq_len, batch]
-        # We need to manually replicate the forward pass correctly
+        # Model expects [batch, seq_len] (batch_first=True)
         
         # src is [batch, seq_len]
-        src_t = src.transpose(0, 1) # [seq_len, batch]
+        # No transpose needed!
         src_key_padding_mask = (src == 2)
         
-        x = model.embedding(src_t) * np.sqrt(128)
+        x = model.embedding(src) * np.sqrt(128) # [batch, seq, d_model]
         x = model.pos_encoder(x)
         output = model.transformer_encoder(x, src_key_padding_mask=src_key_padding_mask)
-        pooled = output.mean(dim=0) # [batch, d_model]
+        pooled = output.mean(dim=1) # [batch, d_model] (dim=1 is seq)
         
         embeddings = pooled.cpu().numpy()
         
@@ -91,12 +90,39 @@ def visualize_embeddings(model, start, end, device, save_path="embeddings.png"):
     pca = PCA(n_components=2)
     reduced = pca.fit_transform(embeddings)
     
-    plt.figure(figsize=(10, 6))
+    # 1. Embeddings Plot
+    plt.figure(figsize=(12, 10))
+    plt.subplot(2, 2, 1)
     sc = plt.scatter(reduced[:, 0], reduced[:, 1], c=stopping_times, cmap='viridis', alpha=0.6)
     plt.colorbar(sc, label='Stopping Time')
-    plt.title(f"Collatz Embeddings ({start}-{end})")
+    plt.title(f"Embeddings PCA ({start}-{end})")
     plt.xlabel("PC1")
     plt.ylabel("PC2")
+    
+    # 2. Stopping Time Distribution
+    plt.subplot(2, 2, 2)
+    plt.hist(stopping_times, bins=30, color='skyblue', edgecolor='black')
+    plt.title("Stopping Time Distribution")
+    plt.xlabel("Stopping Time")
+    plt.ylabel("Count")
+    
+    # 3. Stopping Time vs Number
+    plt.subplot(2, 2, 3)
+    plt.scatter(numbers, stopping_times, alpha=0.5, s=10, c='orange')
+    plt.title("Stopping Time vs Number")
+    plt.xlabel("Number")
+    plt.ylabel("Stopping Time")
+    
+    # 4. Parity Sequence Length (approx) vs Stopping Time
+    # We can approximate sequence length by non-padding count
+    seq_lens = np.sum(parity_vectors != 2, axis=1)
+    plt.subplot(2, 2, 4)
+    plt.scatter(seq_lens, stopping_times, alpha=0.5, s=10, c='green')
+    plt.title("Seq Length vs Stopping Time")
+    plt.xlabel("Sequence Length")
+    plt.ylabel("Stopping Time")
+    
+    plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
     print(f"Saved {save_path}")
