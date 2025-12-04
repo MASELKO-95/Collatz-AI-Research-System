@@ -47,37 +47,13 @@ void search_range(uint64_t start_high, uint64_t start_low, uint64_t count,
 
     while (steps < MAX_STEPS && !loop_found.load()) {
       // Tortoise step
-      if (tortoise == 1)
-        break;
-      if (tortoise % 2 == 0) {
-        tortoise /= 2;
-      } else {
-        if (tortoise > (((uint128_t)-1) - 1) / 3)
-          break; // Overflow
-        tortoise = 3 * tortoise + 1;
-      }
+      // Tortoise step
+      tortoise = (tortoise & 1) ? (3 * tortoise + 1) : (tortoise >> 1);
 
       // Hare step 1
-      if (hare == 1)
-        break;
-      if (hare % 2 == 0) {
-        hare /= 2;
-      } else {
-        if (hare > (((uint128_t)-1) - 1) / 3)
-          break;
-        hare = 3 * hare + 1;
-      }
-
-      // Hare step 2
-      if (hare == 1)
-        break;
-      if (hare % 2 == 0) {
-        hare /= 2;
-      } else {
-        if (hare > (((uint128_t)-1) - 1) / 3)
-          break;
-        hare = 3 * hare + 1;
-      }
+      // Hare steps (2x)
+      for (int k = 0; k < 2; ++k)
+        hare = (hare & 1) ? (3 * hare + 1) : (hare >> 1);
 
       // Check for cycle
       if (tortoise == hare) {
@@ -104,8 +80,9 @@ void search_range(uint64_t start_high, uint64_t start_low, uint64_t count,
     }
 
     // Progress report every 10000 numbers
-    if (i % 10000 == 0 && thread_id == 0) {
-      std::lock_guard<std::mutex> lock(output_mutex);
+    // Progress report every 10000 numbers
+    if (!(i % 10000) && !thread_id) {
+      std::lock_guard l(output_mutex);
       std::cout << "Thread " << thread_id << " checked " << i
                 << " numbers...\n";
     }
