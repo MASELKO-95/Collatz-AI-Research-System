@@ -140,7 +140,28 @@ if __name__ == "__main__":
             
             model = load_model(latest, DEVICE)
             
-            analyze_range(model, 1000, 2000, DEVICE, report_to_discord=True)
+            # Parse step from filename to determine training frontier
+            step = 0
+            try:
+                basename = os.path.basename(latest)
+                name = os.path.splitext(basename)[0]
+                parts = name.split('_')
+                if 'step' in parts:
+                    idx = parts.index('step')
+                    if idx + 1 < len(parts):
+                        step = int(parts[idx+1])
+            except ValueError:
+                pass
+            
+            # Calculate frontier
+            # Assuming BATCH_SIZE=512 from train.py
+            BATCH_SIZE = 512
+            start_n = 10 + step * BATCH_SIZE
+            end_n = start_n + 2000 # Analyze next 2000 numbers
+            
+            print(f"Training is at step {step}. Analyzing frontier range: {start_n} to {end_n}")
+            
+            analyze_range(model, start_n, end_n, DEVICE, report_to_discord=True)
             
     except Exception as e:
         print(f"Error: {e}")

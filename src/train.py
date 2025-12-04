@@ -97,7 +97,24 @@ def train():
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
     checkpoints = glob.glob(os.path.join(CHECKPOINT_DIR, "*.pth"))
     if checkpoints:
-        latest_checkpoint = max(checkpoints, key=os.path.getctime)
+        # Parse step from filename: model_step_{step}.pth or model_step_{step}_final.pth
+        def get_step_from_path(path):
+            try:
+                basename = os.path.basename(path)
+                # Remove extension
+                name = os.path.splitext(basename)[0]
+                # Split by '_'
+                parts = name.split('_')
+                # Find the number after 'step'
+                if 'step' in parts:
+                    idx = parts.index('step')
+                    if idx + 1 < len(parts):
+                        return int(parts[idx+1])
+            except ValueError:
+                pass
+            return -1
+
+        latest_checkpoint = max(checkpoints, key=get_step_from_path)
         print(f"Loading checkpoint: {latest_checkpoint}")
         checkpoint = torch.load(latest_checkpoint, map_location=DEVICE)
         
